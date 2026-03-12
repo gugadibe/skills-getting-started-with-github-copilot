@@ -14,6 +14,46 @@ from pathlib import Path
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
 
+# Dados simulados de atividades
+activities = {
+    "Robotics": {
+        "description": "Build and program robots for competitions.",
+        "schedule": "Wednesdays 16:00-18:00",
+        "max_participants": 10,
+        "participants": []
+    },
+    "Drama Club": {
+        "description": "Act, direct, and produce plays.",
+        "schedule": "Fridays 15:00-17:00",
+        "max_participants": 15,
+        "participants": []
+    },
+    "Chess": {
+        "description": "Learn and play chess competitively.",
+        "schedule": "Mondays 17:00-19:00",
+        "max_participants": 12,
+        "participants": []
+    }
+}
+
+# Endpoint para listar atividades
+@app.get("/activities")
+def get_activities():
+    return activities
+
+# Endpoint para inscrever aluno
+@app.post("/activities/{activity}/signup")
+def signup(activity: str, email: str):
+    if activity not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    act = activities[activity]
+    if email in act["participants"]:
+        raise HTTPException(status_code=400, detail="Already signed up")
+    if len(act["participants"]) >= act["max_participants"]:
+        raise HTTPException(status_code=400, detail="No spots left")
+    act["participants"].append(email)
+    return {"message": f"Signed up for {activity}!"}
+
 # Mount the static files directory
 current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
